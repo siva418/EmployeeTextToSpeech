@@ -48,10 +48,10 @@ namespace NamePronunciationTool.ServiceLayer
                         employeeData.EmployeeId = (string)reader["Employee_ID"];
                         employeeData.FirstName = (string)reader["First_Name"];
                         employeeData.LastName = (string)reader["Last_Name"];
-                        employeeData.ADENTID = (string)reader["Middle_Name"];
+                        employeeData.MiddleName = (string)reader["Middle_Name"];
                         employeeData.PreferredName = (string)reader["Preferred_Name"];
-                        employeeData.ADENTID = (string)reader["Email_ID"];
-                        employeeData.ADENTID = (string)reader["Preferred_Name"];
+                        employeeData.EmailId = (string)reader["Email_ID"];
+                        employeeData.PreferredName = (string)reader["Preferred_Name"];
                         employeeData.Country = (string)reader["Country"];
                     }
                 }
@@ -98,10 +98,10 @@ namespace NamePronunciationTool.ServiceLayer
                         employeeData.EmployeeId = (string)reader["Employee_ID"];
                         employeeData.FirstName = (string)reader["First_Name"];
                         employeeData.LastName = (string)reader["Last_Name"];
-                        employeeData.ADENTID = (string)reader["Middle_Name"];
+                        employeeData.MiddleName = (string)reader["Middle_Name"];
                         employeeData.PreferredName = (string)reader["Preferred_Name"];
-                        employeeData.ADENTID = (string)reader["Email_ID"];
-                        employeeData.ADENTID = (string)reader["Preferred_Name"];
+                        employeeData.EmailId = (string)reader["Email_ID"];
+                        employeeData.PreferredName = (string)reader["Preferred_Name"];
                         employeeData.Country = (string)reader["Country"];
                         employeeData.NamePhonetic = GetEmployeeNamePhoneticData(employeeData.ADENTID);
                         employeesData.Add(employeeData);
