@@ -2,6 +2,7 @@
 using NamePronunciationTool.Models;
 using Npgsql;
 using System;
+using System.Collections.Generic;
 
 namespace NamePronunciationTool.ServiceLayer
 {
@@ -72,6 +73,55 @@ namespace NamePronunciationTool.ServiceLayer
             return employeeData;
         }
 
+        public List<EmployeeData> GetEmployeesData()
+        {
+            NpgsqlConnection conn = new NpgsqlConnection("host=20.55.122.15;port=5433;database=yugabyte;user id=yugabyte;password=Hackathon22!");
+            bool result = false;
+            List<EmployeeData> employeesData = null;
+
+            try
+            {
+                conn.Open();
+
+                NpgsqlCommand empPrepCmd = new NpgsqlCommand("SELECT * FROM public.employee_data", conn);
+                
+                NpgsqlDataReader reader = empPrepCmd.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    employeesData = new List<EmployeeData>();
+
+                    while (reader.Read())
+                    {
+                        EmployeeData employeeData = new EmployeeData();
+                        employeeData.ADENTID = (string)reader["AD_ENT_ID"];
+                        employeeData.EmployeeId = (string)reader["Employee_ID"];
+                        employeeData.FirstName = (string)reader["First_Name"];
+                        employeeData.LastName = (string)reader["Last_Name"];
+                        employeeData.ADENTID = (string)reader["Middle_Name"];
+                        employeeData.PreferredName = (string)reader["Preferred_Name"];
+                        employeeData.ADENTID = (string)reader["Email_ID"];
+                        employeeData.ADENTID = (string)reader["Preferred_Name"];
+                        employeeData.Country = (string)reader["Country"];
+                        employeeData.NamePhonetic = GetEmployeeNamePhoneticData(employeeData.ADENTID);
+                        employeesData.Add(employeeData);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result = false;
+            }
+            finally
+            {
+                if (conn.State != System.Data.ConnectionState.Closed)
+                {
+                    conn.Close();
+                }
+            }
+
+            return employeesData;
+        }
         public string GetEmployeeNamePhoneticData(string employeeAdEntId)
         {
             NpgsqlConnection conn = new NpgsqlConnection("host=20.55.122.15;port=5433;database=yugabyte;user id=yugabyte;password=Hackathon22!");

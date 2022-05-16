@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NamePronunciationTool.Models;
 using NamePronunciationTool.ServiceLayer;
+using System.Collections.Generic;
 
 namespace NamePronunciation.Controllers
 {
@@ -33,6 +34,11 @@ namespace NamePronunciation.Controllers
         public IActionResult RecordPronunciation()
         {
             return View();
+        }
+
+        public List<EmployeeData> GetEmployeeList()
+        {
+            return null;
         }
     }
 }
