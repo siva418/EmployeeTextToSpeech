@@ -35,7 +35,7 @@
     {
         var adEntId = $("#empId").val();
         var password = $("#password").val();
-        if ((adEntId !== undefined && adEntId !== "") && (password !== undefined && password !== "")) {
+        if ((adEntId !== undefined && adEntId !== "") && (password !== undefined && password !== "" && password === "Hack")) {
             var url = '@Url.Action("EmployeeSearch", "Employee", new { employeeAdEntId = "adEntId"})';
             window.location.href = url.replace('adEntId', adEntId);
         } else { alert("LoginId/Password is incorrect!"); }
@@ -62,11 +62,11 @@
                             <tbody>
                                 <tr>
                                     <td style="text-align: left; padding: 10px;"><label><b>User Name :</b></label></td>
-                                    <td><textarea class="form-control" id="empId"></textarea></td>
+                                    <td><input class="form-control" id="empId" type="text"></input></td>
                                 </tr>
                                 <tr>
                                     <td style="text-align:left; padding:10px;"><label><b>Password :</b></label></td>
-                                    <td><textarea class="form-control" id="password"></textarea></td>
+                                    <td><input class="form-control" id="password" type="password"></input></td>
                                 </tr>
                                 <tr>                                   
                                     <td colspan="2">
