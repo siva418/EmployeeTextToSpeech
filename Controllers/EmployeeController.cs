@@ -2,6 +2,7 @@
 using NamePronunciationTool.Models;
 using NamePronunciationTool.ServiceLayer;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NamePronunciation.Controllers
 {
@@ -36,9 +37,12 @@ namespace NamePronunciation.Controllers
             return View();
         }
 
-        public List<EmployeeData> GetEmployeeList()
+        public JsonResult GetEmployeeList(string namePart)
         {
-            return null;
+            List<EmployeeData> empList = _dbOperations.GetEmployeeList();
+
+            var result = empList.Where(e => e.FirstName.StartsWith(namePart) || e.LastName.StartsWith(namePart)).ToList();
+            return Json(result);
         }
     }
 }

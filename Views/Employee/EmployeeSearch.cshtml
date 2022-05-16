@@ -5,69 +5,101 @@
 }
 
 @model NamePronunciationTool.Models.EmployeeData
-<style>
-    #tblemployeeDetails label {
-        width: 200px;
-    }
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <style>
+        #tblemployeeDetails label {
+            width: 200px;
+        }
 
-    #btnRecordPronunciation {
-        border-radius: 4px;
-        text-align: center;
-        background-color: orangered;
-        border-color: orangered;
-        color: white;
-    }
+        #btnRecordPronunciation {
+            border-radius: 4px;
+            text-align: center;
+            background-color: orangered;
+            border-color: orangered;
+            color: white;
+        }
+    </style>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#empAutoComplete").keyup(function (e) {
+                var searchNamePart = $("input[name='empNameAutoComplete']").val();
 
-</style>
-<div id="divEmployeeSearch" class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-    <br />
-    <div style="height:10px; text-align: right;">
-        <div id="employeeNameAutoComplete">
-            <input class="form-control" id="empAutoComplete" type="text"></input>
+                $.ajax({
+                    url: "@Url.Action("GetEmployeeList", "Employee")",
+                    type: "POST",
+                    data: { 'namePart': searchNamePart },
+                    dataType: "json",
+                    success: function (data) {
+                        if (data == null || data == "") {
+                            alert("no employee found!");
+                        }
+                        else {
+                            var dataList = document.getElementById('json-datalist');
+                            $(dataList).empty();
+                            $.each(data, function (key, value) {
+                                $(dataList).append($('<option>').text(value.firstName.trim() + ' ' + value.lastName.trim()).attr("value", value.adentid));
+                            });
+                        }
+                    },
+                    error: function () {
+                        alert("failure");
+                    }
+                });
+            });
+        });
+    </script>
+    <div id="divEmployeeSearch" class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <br />
+        <div style="height:10px; text-align: right;">
+            <div id="employeeNameAutoComplete">
+                <input class="form-control" id="empAutoComplete" name="empNameAutoComplete" type="text"></input>
+                <datalist id="json-datalist"></datalist>
+            </div>
+            <label><b>Logged Employee : </b></label>
+            <label id="loggedemp" style="width:120px; text-align:left;">siva krishna</label>
+            <br />
+            <button type="button" id="btnRecordPronunciation"><b>Record Your Name Pronunciation</b></button>
         </div>
-        <label><b>Logged Employee : </b></label>
-        <label id="loggedemp" style="width:120px; text-align:left;">siva krishna</label>
-        <br/>
-        <button type="button" id="btnRecordPronunciation"><b>Record Your Name Pronunciation</b></button>
+        <br />
+        <br />
+        <br />
+        <table class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding-left:10px;">
+            <tr>
+                <td class="col-xs-10 col-sm-10 col-md-10 col-lg-10">
+                    <p></p>
+                    <table id="tblemployeeDetails">
+                        <tbody>
+                            <tr>
+                                <td style="text-align: left; padding: 10px;"><label><b>Employee Name :</b></label></td>
+                                <td><label id="empName" class="form-control">@Model.FirstName @Model.LastName</label></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align:left; padding:10px;">
+                                    <label><b>Employee Id :</b></label>
+                                </td>
+                                <td>
+                                    <label class="form-control" id="empId">@Model.EmployeeId </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align:left; padding:10px;"><label><b>Country :</b></label></td>
+                                <td><label class="form-control" id="country">@Model.Country</label></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align:left; padding:10px;"><label><b>Name Pronunciation :</b></label></td>
+                                <td><button type="button" id="btnplay"><b>Play</b></button></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align:left; padding:10px;"><label><b>Name Phonetic :</b></label></td>
+                                <td><label class="form-control" id="phonetic">@Model.NamePhonetic</label></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+                <td class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
+                </td>
+            </tr>
+        </table>
     </div>
-    <br />
-    <br />
-    <br />
-    <table class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding-left:10px;">
-        <tr>
-            <td class="col-xs-10 col-sm-10 col-md-10 col-lg-10">
-                <p></p>
-                <table id="tblemployeeDetails">
-                    <tbody>
-                        <tr>
-                            <td style="text-align: left; padding: 10px;"><label><b>Employee Name :</b></label></td>
-                            <td><label id="empName" class="form-control">@Model.FirstName @Model.LastName</label></td>
-                        </tr>
-                        <tr>
-                            <td style="text-align:left; padding:10px;">
-                                <label><b>Employee Id :</b></label>
-                            </td>
-                            <td>
-                                <label class="form-control" id="empId">@Model.EmployeeId </label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="text-align:left; padding:10px;"><label><b>Country :</b></label></td>
-                            <td><label class="form-control" id="country">@Model.Country</label></td>
-                        </tr>
-                        <tr>
-                            <td style="text-align:left; padding:10px;"><label><b>Name Pronunciation :</b></label></td>
-                            <td><button type="button" id="btnplay"><b>Play</b></button></td>
-                        </tr>
-                        <tr>
-                            <td style="text-align:left; padding:10px;"><label><b>Name Phonetic :</b></label></td>
-                            <td><label class="form-control" id="phonetic">@Model.NamePhonetic</label></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </td>
-            <td class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
-            </td>
-        </tr>
-    </table>
-</div>

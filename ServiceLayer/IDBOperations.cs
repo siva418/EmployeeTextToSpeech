@@ -1,4 +1,5 @@
 ﻿using NamePronunciationTool.Models;
+using System.Collections.Generic;
 
 namespace NamePronunciationTool.ServiceLayer
 {
@@ -9,6 +10,6 @@ namespace NamePronunciationTool.ServiceLayer
         bool SaveSpeech(string employeeAdEntId, byte[] audioByteArray);
         bool SavePhoneticName(string employeeAdEntId, string phoneticName);
 
-
+        List<EmployeeData> GetEmployeeList();
     }
 }

@@ -73,7 +73,7 @@ namespace NamePronunciationTool.ServiceLayer
             return employeeData;
         }
 
-        public List<EmployeeData> GetEmployeesData()
+        public List<EmployeeData> GetEmployeeList()
         {
             NpgsqlConnection conn = new NpgsqlConnection("host=20.55.122.15;port=5433;database=yugabyte;user id=yugabyte;password=Hackathon22!");
             bool result = false;
