@@ -14,6 +14,17 @@
 </style>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/js/RecordPunctation.js"></script>
+<script type="text/javascript">
+        $(document).ready(function () {
+            $('#radioButtonContainerId input:radio').click(function () {
+                if ($(this).val() === 'Standard') {
+                    $("#btnRecord").attr('disabled','disabled');
+                } else if ($(this).val() === 'Custom') {
+                    $("#btnRecord").removeAttr('disabled');
+                }
+            });
+        });
+</script>
 <html>
 <body>
     <table class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding-left:10px;" id="tblRecordPronunciation">
@@ -23,10 +34,10 @@
                 <table id="tblemployeeDetails">
                     <tbody>
                         <tr>
-                            <td style="text-align: left; padding: 10px;"><label><b>Opt out name Pronunciation : &nbsp;&nbsp;</b></label></td>
+                            <td style="text-align: left; padding: 10px;"><label><b>Opt Name Pronunciation Type : &nbsp;&nbsp;</b></label></td>
 
                             <td>
-                                <div>
+                                <div ="radioButtonContainerId">
                                     <input type="radio" id="idoptoutnameradio1" name="optoutnameradio">
                                     <label for="idoptoutnameradio1"><b>Standard</b></label>
                                     &nbsp;
@@ -65,8 +76,8 @@
                         </tr>
                         <tr>
                             <td style="text-align:left; padding:10px;"><label><b>Name Pronunciation :</b></label></td>
-                            <td><button type="button" id="btnplay"><b>Play</b></button></td>
                             <td><button type="button" id="btnRecord"><b>Record</b></button></td>
+                            <td><button type="button" id="btnplay"><b>Play</b></button></td>
                         </tr>
                         <tr>
                             <td style="text-align:left; padding:10px;"><label><b>Name Phonetic :</b></label></td>

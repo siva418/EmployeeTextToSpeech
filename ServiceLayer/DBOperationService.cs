@@ -200,7 +200,7 @@ namespace NamePronunciationTool.ServiceLayer
 
                 if (hasSpeech)
                 {
-                    NpgsqlCommand empUpdateCmd = new NpgsqlCommand("UPDATE public.emp_name_pronunciation_data SET \"Custom_Speech\" = '" + audioByteArray + "' WHERE \"AD_ENT_ID\" = '" + employeeAdEntId + "';", conn);
+                    NpgsqlCommand empUpdateCmd = new NpgsqlCommand("UPDATE public.emp_name_pronunciation_data SET \"Custom_Speech\" = '" + audioByteArray + "',\"Speech_Type\" = 'Custom' WHERE \"AD_ENT_ID\" = '" + employeeAdEntId + "';", conn);
                     int updatedRows = empUpdateCmd.ExecuteNonQuery();
                 }
                 else

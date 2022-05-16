@@ -1,7 +1,7 @@
 ﻿$(document).ready(function () {
 
     $("#btnRecord").click(function () {
-        $("body").prepend('<div id="preloader">Recording...</div>');
+        $("body").prepend('<div id="preloader" style="background-color:green;">Recording...</div>');
         var speechModel = new CreateSpeechModel();
         $.ajax({
             url: '/speech/SaveSpeech',
