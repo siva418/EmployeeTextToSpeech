@@ -3,6 +3,8 @@
 *@
 @{
 }
+
+@model NamePronunciationTool.Models.EmployeeData
 <style>
     #tblRecordPronunciation textarea {
         width: 150%;
@@ -10,6 +12,8 @@
         height: 40px;
     }
 </style>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/RecordPunctation.js"></script>
 <html>
 <body>
     <table class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding-left:10px;" id="tblRecordPronunciation">
@@ -37,35 +41,36 @@
                         </tr>
                         <tr>
                             <td style="text-align: left; padding: 10px;"><label><b>AdEnt ID :</b></label></td>
-                            <td><textarea class="form-control" id="adEntId"></textarea></td>
+                            <td><textarea class="form-control" id="adEntId">@Model.ADENTID</textarea></td>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding: 10px;"><label><b>Employee Name :</b></label></td>
-                            <td><textarea class="form-control" id="empName"></textarea></td>
-                        </tr>
+                            <td><textarea class="form-control" id="empName">@Model.FirstName @Model.LastName</textarea><td>
+</tr>
                         <tr>
                             <td style="text-align: left; padding: 10px;"><label><b>Preferred Name :</b></label></td>
-                            <td><textarea class="form-control" id="preferredName"></textarea></td>
+                            <td><textarea class="form-control" id="preferredName">@Model.PreferredName</textarea></td>
                         </tr>
                         <tr>
                             <td style="text-align:left; padding:10px;">
                                 <label><b>Employee Id :</b></label>
                             </td>
                             <td>
-                                <label class="form-control" id="empId"></label>
+                                <label class="form-control" id="empId">@Model.EmployeeId</label>
                             </td>
                         </tr>
                         <tr>
                             <td style="text-align:left; padding:10px;"><label><b>Country :</b></label></td>
-                            <td><label class="form-control" id="country"></label></td>
+                            <td><label class="form-control" id="country">@Model.Country</label></td>
                         </tr>
                         <tr>
                             <td style="text-align:left; padding:10px;"><label><b>Name Pronunciation :</b></label></td>
                             <td><button type="button" id="btnplay"><b>Play</b></button></td>
+                            <td><button type="button" id="btnRecord"><b>Record</b></button></td>
                         </tr>
                         <tr>
                             <td style="text-align:left; padding:10px;"><label><b>Name Phonetic :</b></label></td>
-                            <td><label class="form-control" id="phonetic"></label></td>
+                            <td><label class="form-control" id="phonetic">@Model.NamePhonetic</label></td>
                         </tr>
                     </tbody>
                 </table>

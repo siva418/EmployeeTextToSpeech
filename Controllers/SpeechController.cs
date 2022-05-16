@@ -137,10 +137,10 @@ namespace NamePronunciationTool.Controllers
 
         }
 
-        [HttpPost("SaveSpeech/{adentid}")]
-        public JsonResult SaveSpeech(string adentid)
+        [HttpPost("SaveSpeech")]
+        public JsonResult SaveSpeech([FromBody] SpeechModel speechModel)
         {
-            _adEntIdToSaveSpeech = adentid;
+            _adEntIdToSaveSpeech = speechModel.EmployeeAdEntId;
             // Create an in-process speech recognizer for the en-US locale.  
             using (
             SpeechRecognitionEngine recognizer =

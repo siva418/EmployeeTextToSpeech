@@ -32,9 +32,10 @@ namespace NamePronunciation.Controllers
             }
         }
 
-        public IActionResult RecordPronunciation()
+        public IActionResult RecordPronunciation(string employeeAdEntId)
         {
-            return View();
+            EmployeeData empData = _dbOperations.GetEmployeeData(employeeAdEntId);
+            return View(empData);
         }
 
         public JsonResult GetEmployeeList(string namePart)

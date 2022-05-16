@@ -56,13 +56,13 @@
     <br />
     <div style="height:10px; text-align: right;">
         <div id="employeeNameAutoComplete">
-            <input class="form-control" id="empAutoComplete" name="empNameAutoComplete" type="text"></input>
+            <input class="form-control" id="empAutoComplete" name="empNameAutoComplete" type="text"/>
             <datalist id="json-datalist"></datalist>
         </div>
         <label><b>Logged Employee : </b></label>
-        <label id="loggedemp" style="width:120px; text-align:left;">siva krishna</label>
+        <label id="loggedemp" style="width:120px; text-align:left;">@Model.FirstName</label>
         <br />
-        <button type="button" id="btnRecordPronunciation"><b>Record Your Name Pronunciation</b></button>
+        <button type="button" id="btnRecordPronunciation" onclick="@("window.location.href='" + @Url.Action("RecordPronunciation", "Employee", new {employeeAdEntId = Model.ADENTID }) + "'");"><b>Record Your Name Pronunciation</b></button>
     </div>
     <br />
     <br />
@@ -79,7 +79,7 @@
                         </tr>
                         <tr>
                             <td style="text-align: left; padding: 10px;"><label><b>Preferred Name :</b></label></td>
-                            <td><input type="text" id="preferredName" class="form-control" />@Model.PreferredName </td>
+                            <td><label id="preferredName" class="form-control" >@Model.PreferredName </label></td>
                         </tr>
                         <tr>
                             <td style="text-align:left; padding:10px;">
