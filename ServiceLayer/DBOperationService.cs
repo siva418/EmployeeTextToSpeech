@@ -53,6 +53,7 @@ namespace NamePronunciationTool.ServiceLayer
                         employeeData.EmailId = (string)reader["Email_ID"];
                         employeeData.PreferredName = (string)reader["Preferred_Name"];
                         employeeData.Country = (string)reader["Country"];
+                        employeeData.SpeechType = GetEmployeeSpeechType(employeeData.ADENTID);
                     }
                 }
             }
@@ -103,6 +104,7 @@ namespace NamePronunciationTool.ServiceLayer
                         employeeData.EmailId = (string)reader["Email_ID"];
                         employeeData.PreferredName = (string)reader["Preferred_Name"];
                         employeeData.Country = (string)reader["Country"];
+                        employeeData.SpeechType = GetEmployeeSpeechType(employeeData.ADENTID);
                         employeeData.NamePhonetic = GetEmployeeNamePhoneticData(employeeData.ADENTID);
                         employeesData.Add(employeeData);
                     }
@@ -121,6 +123,45 @@ namespace NamePronunciationTool.ServiceLayer
             }
 
             return employeesData;
+        }
+
+        public string GetEmployeeSpeechType(string employeeAdEntId)
+        {
+            NpgsqlConnection conn = new NpgsqlConnection("host=20.55.122.15;port=5433;database=yugabyte;user id=yugabyte;password=Hackathon22!");
+            bool result = false;
+            string speechType = string.Empty;
+
+            try
+            {
+                conn.Open();
+
+                NpgsqlCommand empPrepCmd = new NpgsqlCommand("SELECT * FROM public.emp_name_pronunciation_data WHERE \"AD_ENT_ID\" = @ADENTID", conn);
+                empPrepCmd.Parameters.Add("@ADENTID", NpgsqlTypes.NpgsqlDbType.Text);
+
+                empPrepCmd.Parameters["@ADENTID"].Value = employeeAdEntId;
+                NpgsqlDataReader reader = empPrepCmd.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        speechType = (string)reader["Speech_Type"];
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result = false;
+            }
+            finally
+            {
+                if (conn.State != System.Data.ConnectionState.Closed)
+                {
+                    conn.Close();
+                }
+            }
+
+            return string.IsNullOrWhiteSpace(speechType) ? "Standard" : speechType;
         }
         public string GetEmployeeNamePhoneticData(string employeeAdEntId)
         {
@@ -265,12 +306,77 @@ namespace NamePronunciationTool.ServiceLayer
 
                 if (hasSpeech)
                 {
-                    NpgsqlCommand empUpdateCmd = new NpgsqlCommand("UPDATE public.emp_name_pronunciation_data SET \"Speech_Phonetic\" = '" + phoneticName + "' WHERE \"AD_ENT_ID\" = '" + employeeAdEntId + "';", conn);
+                    NpgsqlCommand empUpdateCmd = new NpgsqlCommand("UPDATE public.emp_name_pronunciation_data SET \"Speech_Phonetic\" = '" + phoneticName + "',\"Speech_Type\"='Standard' WHERE \"AD_ENT_ID\" = '" + employeeAdEntId + "';", conn);
                     int updatedRows = empUpdateCmd.ExecuteNonQuery();
                 }
                 else
                 {
                     NpgsqlCommand empInsertCmd = new NpgsqlCommand("INSERT INTO public.emp_name_pronunciation_data (\"AD_ENT_ID\", \"Speech_Type\", \"Speech_Phonetic\") VALUES ('" + employeeAdEntId + "', 'Standard', '" + phoneticName + "');", conn);
+                    int insertedRows = empInsertCmd.ExecuteNonQuery();
+                }
+
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                result = false;
+            }
+            finally
+            {
+                if (conn.State != System.Data.ConnectionState.Closed)
+                {
+                    conn.Close();
+                }
+            }
+
+            return result;
+        }
+
+        public bool SaveSpeechType(string type, string adEntId)
+        {
+            NpgsqlConnection conn = new NpgsqlConnection("host=20.55.122.15;port=5433;database=yugabyte;user id=yugabyte;password=Hackathon22!");
+            bool result = false;
+            bool hasSpeech = false;
+
+            try
+            {
+                conn.Open();
+
+                NpgsqlCommand empPrepCmd = new NpgsqlCommand("SELECT * FROM public.emp_name_pronunciation_data WHERE \"AD_ENT_ID\" = @ADENTID", conn);
+                empPrepCmd.Parameters.Add("@ADENTID", NpgsqlTypes.NpgsqlDbType.Text);
+
+                empPrepCmd.Parameters["@ADENTID"].Value = adEntId;
+                NpgsqlDataReader reader = empPrepCmd.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    hasSpeech = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                result = false;
+            }
+            finally
+            {
+                if (conn.State != System.Data.ConnectionState.Closed)
+                {
+                    conn.Close();
+                }
+            }
+
+            try
+            {
+                conn.Open();
+
+                if (hasSpeech)
+                {
+                    NpgsqlCommand empUpdateCmd = new NpgsqlCommand("UPDATE public.emp_name_pronunciation_data SET \"Speech_Type\" = '" + type + "',\"Speech_Type\"='Standard' WHERE \"AD_ENT_ID\" = '" + adEntId + "';", conn);
+                    int updatedRows = empUpdateCmd.ExecuteNonQuery();
+                }
+                else
+                {
+                    NpgsqlCommand empInsertCmd = new NpgsqlCommand("INSERT INTO public.emp_name_pronunciation_data (\"AD_ENT_ID\", \"Speech_Type\", \"Speech_Phonetic\") VALUES ('" + adEntId + "', '"+type+"', '');", conn);
                     int insertedRows = empInsertCmd.ExecuteNonQuery();
                 }
 

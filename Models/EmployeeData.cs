@@ -11,6 +11,7 @@
         public string Country { get; set; }
         public string NamePhonetic { get; set; }
         public string EmailId { get; set; }
-        
+        public string SpeechType { get; set; }
+
     }
 }

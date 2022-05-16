@@ -1,15 +1,28 @@
 ﻿$(document).ready(function () {
+    
     $("#btnplay").click(function () {
         var speechModel = new CreateSpeechModel();
-        $.ajax({
-            url: '/speech/TextToSpeech',
-            contentType: 'application/json',
-            type: 'Post',
-            data: JSON.stringify(speechModel),
-            success: function (data) {
+        if ($("#speechType").text() === 'Standard') {
+            $.ajax({
+                url: '/speech/TextToSpeech',
+                contentType: 'application/json',
+                type: 'Post',
+                data: JSON.stringify(speechModel),
+                success: function (data) {
 
-            }
-        })
+                }
+            })
+        }
+        else {
+            $.ajax({
+                url: '/speech/PlayAudio/' + $("#adEntId").text(),
+                contentType: 'application/json',
+                type: 'GET',
+                success: function (data) {
+
+                }
+            })
+        }
     });
 });
 

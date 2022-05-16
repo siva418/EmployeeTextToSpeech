@@ -4,16 +4,20 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NamePronunciation.Models;
 using NamePronunciationTool.ServiceLayer;
+using NAudio.Wave;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace NamePronunciationTool.Controllers
 {
@@ -58,31 +62,84 @@ namespace NamePronunciationTool.Controllers
         [HttpPost("TextToSpeech")]
         public async Task<JsonResult> TextToSpeech([FromBody]SpeechModel speechModel)
         {
+            string accessToken = await _authentication.FetchTokenAsync("https://eastus.api.cognitive.microsoft.com/sts/v1.0/issueToken", SubscriptionKey);
+            string host = "https://eastus.tts.speech.microsoft.com/cognitiveservices/v1";
+
+            // Create SSML document.
+            XDocument body = new XDocument(
+                    new XElement("speak",
+                        new XAttribute("version", "1.0"),
+                        new XAttribute(XNamespace.Xml + "lang", "en-US"),
+                        new XElement("voice",
+                            new XAttribute(XNamespace.Xml + "lang", "en-US"),
+                            new XAttribute(XNamespace.Xml + "gender", "Male"),
+                            new XAttribute("name", "en-IN-PrabhatNeural"), // Short name for "Microsoft Server Speech Text to Speech Voice (en-US, Jessa24KRUS)"
+                            speechModel.Name)));
+
             try
             {
-                var speechConfig = SpeechConfig.FromSubscription(SubscriptionKey, yourServiceRegion);
-                speechModel.Region = string.IsNullOrWhiteSpace(speechModel.Region) ? "US" : speechModel.Region;
-                speechConfig.SpeechSynthesisVoiceName = _voiceList.GetVoiceList(true).FirstOrDefault(x => x.Key == speechModel.Region).Value;
-
-
-                using (var speechSynthesizer = new Microsoft.CognitiveServices.Speech.SpeechSynthesizer(speechConfig))
+                using (HttpClient client = new HttpClient())
                 {
-                    var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(speechModel.Name ?? "Hi! Welcome to name pronunciation tool");
-                    OutputSpeechSynthesisResult(speechSynthesisResult, speechModel.Name);
-                }
-                var phoneticName = GetPhoneticName(speechModel.Name);
-                var isSaved = _dBOperations.SavePhoneticName(speechModel.EmployeeAdEntId, phoneticName);
-                if (!isSaved)
-                {
-                    return new JsonResult("Failure");
-                }
+                    using (HttpRequestMessage request = new HttpRequestMessage())
+                    {
+                        // Set the HTTP method
+                        request.Method = HttpMethod.Post;
+                        // Construct the URI
+                        request.RequestUri = new Uri(host);
+                        // Set the content type header
+                        request.Content = new StringContent(body.ToString(), Encoding.UTF8, "application/ssml+xml");
+                        // Set additional header, such as Authorization and User-Agent
+                        request.Headers.Add("Authorization", "Bearer " + accessToken);
+                        request.Headers.Add("Connection", "Keep-Alive");
+                        // Update your resource name
+                        request.Headers.Add("User-Agent", "TexttoSpeech");
+                        // Audio output format. See API reference for full list.
+                        request.Headers.Add("X-Microsoft-OutputFormat", "riff-24khz-16bit-mono-pcm");
+                        // Create a request
+                        using (HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false))
+                        {
+                            response.EnsureSuccessStatusCode();
+                            // Asynchronously read the response
+                            using (Stream dataStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                            {
+                                using (FileStream fileStream = new FileStream(speechModel.EmployeeAdEntId+ ".mp3", FileMode.Create, FileAccess.Write, FileShare.Write))
+                                {
+                                    await dataStream.CopyToAsync(fileStream).ConfigureAwait(false);
+                                    fileStream.Close();
 
-                return new JsonResult("Success");
+                                    var result = new HttpResponseMessage();
+                                    result.StatusCode = response.StatusCode;
+                                    if (response.StatusCode == HttpStatusCode.OK)
+                                        result.Content = new StringContent("Audio Saved");
+                                    else
+                                        result.Content = new StringContent(response.ReasonPhrase);
+
+                                    using (var audioFile = new AudioFileReader(speechModel.EmployeeAdEntId + ".mp3"))
+                                    {
+                                        using (var outputDevice = new WaveOutEvent())
+                                        {
+                                            outputDevice.Init(audioFile);
+                                            outputDevice.Play();
+                                            while (outputDevice.PlaybackState == PlaybackState.Playing)
+                                            {
+                                                Thread.Sleep(1000);
+                                            }
+                                        }
+                                    }
+
+                                    return new JsonResult(result);
+                                }
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
-                _ilogger.LogError(ex.Message);
-                return new JsonResult(ex.Message);
+                var result = new HttpResponseMessage();
+                result.Content = new StringContent(ex.Message + ex.StackTrace);
+                result.StatusCode = HttpStatusCode.InternalServerError;
+                return new JsonResult(result);
             }
         }
 
@@ -124,7 +181,7 @@ namespace NamePronunciationTool.Controllers
         private void Reco_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
             byte[] dataToBeSaved;
-            using (FileStream fileStream = new FileStream("test.wav", FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (FileStream fileStream = new FileStream(_adEntIdToSaveSpeech+".mp3", FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 e.Result.Audio.WriteToWaveStream(fileStream);
                 using (var memoryStream = new MemoryStream())
@@ -173,6 +230,29 @@ namespace NamePronunciationTool.Controllers
 
 
             return new JsonResult("Success");
+        }
+
+        [HttpGet("PlayAudio/{adentid}")]
+        public void PlayAudio(string adentid)
+        {
+            using (var audioFile = new AudioFileReader(adentid + ".mp3"))
+            {
+                using (var outputDevice = new WaveOutEvent())
+                {
+                    outputDevice.Init(audioFile);
+                    outputDevice.Play();
+                    while (outputDevice.PlaybackState == PlaybackState.Playing)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                }
+            }
+        }
+
+        [HttpGet("SaveType/{type}/{adentid}")]
+        public void SaveType(string type,string adentid)
+        {
+            _dBOperations.SaveSpeechType(type,adentid);
         }
 
         [HttpGet("GetVoices/{region}")]

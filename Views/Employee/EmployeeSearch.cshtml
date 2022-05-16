@@ -10,7 +10,7 @@
 <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <style>
     #tblemployeeDetails label {
-        width: 200px;
+        width: 400px;
     }
 
     #btnRecordPronunciation {
@@ -23,6 +23,21 @@
 </style>
 
 <script src="~/js/SpeechIndex.js"></script>
+<script type="text/javascript">
+    var soundObject = null;
+    function PlaySound() {
+        if (soundObject != null) {
+            document.body.removeChild(soundObject);
+            soundObject.removed = true;
+            soundObject = null;
+        }
+        soundObject = document.createElement("embed");
+        soundObject.setAttribute("src", "C:\Users\KL Naidu\Documents\sample.wav");
+        soundObject.setAttribute("hidden", true);
+        soundObject.setAttribute("autostart", true);
+        document.body.appendChild(soundObject);
+    }
+</script>
 <script type="text/javascript">
         $(document).ready(function () {
             $("#empAutoComplete").keyup(function (e) {
@@ -88,7 +103,7 @@
                         </tr>
                         <tr>
                             <td style="text-align: left; padding: 10px;"><label><b>Preferred Name :</b></label></td>
-                            <td><label id="preferredName" class="form-control" >@Model.PreferredName </label></td>
+                            <td><label id="preferredName" class="form-control">@Model.PreferredName </label></td>
                         </tr>
                         <tr>
                             <td style="text-align:left; padding:10px;">
@@ -111,8 +126,14 @@
                             <td><label class="form-control" id="country">@Model.Country</label></td>
                         </tr>
                         <tr>
+                            <td style="text-align:left; padding:10px;"><label><b>Speech Type :</b></label></td>
+                            <td><label class="form-control" id="speechType">@Model.SpeechType</label></td>
+                        </tr>
+                        <tr>
                             <td style="text-align:left; padding:10px;"><label><b>Name Pronunciation :</b></label></td>
-                            <td><button type="button" id="btnplay"><b>Play</b></button></td>
+                            <td>
+                                <button type="button" id="btnplay"><b>Play</b></button>
+                            </td>
                         </tr>
                         <tr>
                             <td style="text-align:left; padding:10px;"><label><b>Name Phonetic :</b></label></td>

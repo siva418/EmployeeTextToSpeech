@@ -9,6 +9,7 @@ namespace NamePronunciationTool.ServiceLayer
         string GetEmployeeNamePhoneticData(string employeeAdEntId);
         bool SaveSpeech(string employeeAdEntId, byte[] audioByteArray);
         bool SavePhoneticName(string employeeAdEntId, string phoneticName);
+        bool SaveSpeechType(string type, string adEntId);
 
         List<EmployeeData> GetEmployeeList();
     }
