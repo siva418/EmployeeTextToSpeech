@@ -12,12 +12,12 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "speech",
+      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "EmployeeTextToSpeech": {
+    "NamePronunciationTool": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "speech",

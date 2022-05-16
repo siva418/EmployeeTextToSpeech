@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using NamePronunciation.ServiceLayer;
+using NamePronunciationTool.ServiceLayer;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -13,7 +15,7 @@ using System.Speech.Synthesis;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EmployeeTextToSpeech.Controllers
+namespace NamePronunciationTool.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -21,10 +23,11 @@ namespace EmployeeTextToSpeech.Controllers
     {
         public VoiceList _voiceList { get; set; }
         public Authentication _authentication { get; set; }
-        public static DBOperations _dBOperations { get; set; }
+        public IDBOperations _dBOperations { get; set; }
         public IConfiguration _configuration;
         public static string recoPhonemes;
         public static string _adEntIdToSaveSpeech;
+        public ILogger<SpeechController> _ilogger;
 
         public string SubscriptionKey
         {
@@ -37,12 +40,13 @@ namespace EmployeeTextToSpeech.Controllers
         private string yourServiceRegion = "eastus";
         private static bool completed = false;
 
-        public SpeechController(VoiceList voiceList, Authentication authentication, IConfiguration configuration, DBOperations dBOperations)
+        public SpeechController(ILogger<SpeechController> logger,VoiceList voiceList, Authentication authentication, IConfiguration configuration, IDBOperations dBOperations)
         {
             _authentication = authentication;
             _voiceList = voiceList;
             _configuration = configuration;
             _dBOperations = dBOperations;
+            _ilogger = logger;
         }
 
         [HttpGet]
@@ -51,7 +55,7 @@ namespace EmployeeTextToSpeech.Controllers
             return new JsonResult("HI! Welcome to Text to Speech API");
         }
 
-        [HttpGet("TextToSpeech/{employeeid}/{name}/{region}")]
+        [HttpGet("TextToSpeech/{employeeAdEntId}/{name}/{region}")]
         public async Task<JsonResult> TextToSpeech(string employeeAdEntId, string name, string region)
         {
             try
@@ -76,8 +80,9 @@ namespace EmployeeTextToSpeech.Controllers
 
                 return new JsonResult("Success");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _ilogger.LogError(ex.Message);
                 return new JsonResult("An error occured");
             }
         }
@@ -117,7 +122,7 @@ namespace EmployeeTextToSpeech.Controllers
             }
         }
 
-        private static void Reco_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        private void Reco_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
             byte[] dataToBeSaved;
             using (FileStream fileStream = new FileStream("test.wav", FileMode.OpenOrCreate, FileAccess.ReadWrite))

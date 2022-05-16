@@ -7,12 +7,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NamePronunciation.ServiceLayer;
+using NamePronunciationTool.ServiceLayer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace EmployeeTextToSpeech
+namespace NamePronunciationTool
 {
     public class Startup
     {
@@ -27,9 +28,11 @@ namespace EmployeeTextToSpeech
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddControllersWithViews();
             services.AddTransient<VoiceList, VoiceList>();
             services.AddTransient<Authentication, Authentication>(); 
             services.AddTransient<DBOperations, DBOperations>();
+            services.AddTransient<IDBOperations, DBOperationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,7 +51,10 @@ namespace EmployeeTextToSpeech
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapControllerRoute(
+                    name:"default",
+                    pattern: "{controller=Home}/{action=Index}"
+                    );
             });
         }
     }
