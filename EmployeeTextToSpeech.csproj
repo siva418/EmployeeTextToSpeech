@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.21.0" />
+    <PackageReference Include="Npgsql" Version="6.0.4" />
     <PackageReference Include="System.Speech" Version="6.0.0" />
   </ItemGroup>
 

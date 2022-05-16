@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using NamePronunciation.ServiceLayer;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -11,6 +10,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EmployeeTextToSpeech.Controllers
@@ -21,7 +21,9 @@ namespace EmployeeTextToSpeech.Controllers
     {
         public VoiceList _voiceList { get; set; }
         public Authentication _authentication { get; set; }
+        public static DBOperations _dBOperations { get; set; }
         public IConfiguration _configuration;
+        public static string recoPhonemes;
 
         public string SubscriptionKey
         {
@@ -32,12 +34,14 @@ namespace EmployeeTextToSpeech.Controllers
         }
 
         private string yourServiceRegion = "eastus";
+        private static bool completed = false;
 
-        public SpeechController( VoiceList voiceList, Authentication authentication, IConfiguration configuration)
+        public SpeechController(VoiceList voiceList, Authentication authentication, IConfiguration configuration, DBOperations dBOperations)
         {
             _authentication = authentication;
             _voiceList = voiceList;
             _configuration = configuration;
+            _dBOperations = dBOperations;
         }
 
         [HttpGet]
@@ -46,72 +50,40 @@ namespace EmployeeTextToSpeech.Controllers
             return new JsonResult("HI! Welcome to Text to Speech API");
         }
 
-        [HttpGet("TextToSpeech/{name}/{region}")]
-        public async Task<JsonResult> TextToSpeech(string name, string region)
+        [HttpGet("TextToSpeech/{employeeid}/{name}/{region}")]
+        public async Task<JsonResult> TextToSpeech(string employeeId, string name, string region)
         {
             try
             {
                 var speechConfig = SpeechConfig.FromSubscription(SubscriptionKey, yourServiceRegion);
 
                 speechConfig.SpeechSynthesisVoiceName = _voiceList.GetVoiceList(true).FirstOrDefault(x => x.Key == region).Value;
-                
+
 
                 using (var speechSynthesizer = new Microsoft.CognitiveServices.Speech.SpeechSynthesizer(speechConfig))
                 {
-                    var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(name ?? "Hi! Welcome to GPS");
+                    var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(name ?? "Hi! Welcome to name pronunciation tool");
                     var a = speechSynthesisResult.Properties;
                     OutputSpeechSynthesisResult(speechSynthesisResult, name);
                 }
+                var phoneticName = GetPhoneticName(name);
+                var isSaved = _dBOperations.SavePhoneticName(employeeId, name);
+                if (!isSaved)
+                {
+                    return new JsonResult("Failure");
+                }
+
                 return new JsonResult("Success");
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return new JsonResult("An error occured");
             }
         }
 
-        public void OutputSpeechSynthesisResult(SpeechSynthesisResult speechSynthesisResult, string text)
-        {
-            switch (speechSynthesisResult.Reason)
-            {
-                case ResultReason.SynthesizingAudioCompleted:
-                    Console.WriteLine($"Speech synthesized for text: [{text}]");
-                    break;
-                case ResultReason.Canceled:
-                    var cancellation = SpeechSynthesisCancellationDetails.FromResult(speechSynthesisResult);
-                    Console.WriteLine($"CANCELED: Reason={cancellation.Reason}");
-
-                    if (cancellation.Reason == CancellationReason.Error)
-                    {
-                        Console.WriteLine($"CANCELED: ErrorCode={cancellation.ErrorCode}");
-                        Console.WriteLine($"CANCELED: ErrorDetails=[{cancellation.ErrorDetails}]");
-                        Console.WriteLine($"CANCELED: Did you set the speech resource key and region values?");
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        [HttpGet("GetVoices/{region}")]
-        public async Task<string> GetVoiceList(string region)
-        {
-            HttpClient httpClient = new HttpClient();
-            var fetchUri = "https://eastus.tts.speech.microsoft.com/cognitiveservices/voices/list";
-            httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", SubscriptionKey);
-            var token = await _authentication.FetchTokenAsync("https://eastus.api.cognitive.microsoft.com/sts/v1.0/issueToken", SubscriptionKey);
-            httpClient.DefaultRequestHeaders.Add("Authorization","Bearer "+token);
-            UriBuilder uriBuilder = new UriBuilder(fetchUri);
-
-            var result = await httpClient.GetAsync(uriBuilder.Uri.AbsoluteUri);
-            return await result.Content.ReadAsStringAsync();
-        }
-
         [HttpGet("GetPhoneticName/{name}")]
-        public JsonResult GetPhoneticName(string name)
+        public string GetPhoneticName(string name)
         {
-            //this is a trick to figure out phonemes used by synthesis engine
-
             //txt to wav
             using (MemoryStream audioStream = new MemoryStream())
             {
@@ -139,11 +111,100 @@ namespace EmployeeTextToSpeech.Controllers
                         recoPhonemes = StringFromWordArray(rr.Words, WordType.Pronunciation);
                     }
 
-                    return new JsonResult(recoPhonemes);
+                    return recoPhonemes;
                 }
             }
         }
-        public static string recoPhonemes;
+
+        private static void Reco_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            byte[] dataToBeSaved;
+            using (FileStream fileStream = new FileStream("test.wav", FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                e.Result.Audio.WriteToWaveStream(fileStream);
+                using (var memoryStream = new MemoryStream())
+                {
+                    fileStream.CopyTo(memoryStream);
+                    dataToBeSaved = memoryStream.ToArray();
+                }
+            }
+            _dBOperations.SaveSpeech("1974899", dataToBeSaved);
+
+        }
+
+        [HttpPost("SaveSpeech")]
+        public JsonResult SaveSpeech()
+        {
+            // Create an in-process speech recognizer for the en-US locale.  
+            using (
+            SpeechRecognitionEngine recognizer =
+              new SpeechRecognitionEngine(
+                new System.Globalization.CultureInfo("en-US")))
+            {
+
+                // Create and load a dictation grammar.  
+                recognizer.LoadGrammar(new DictationGrammar());
+
+                // Add a handler for the speech recognized event.  
+                recognizer.SpeechRecognized +=
+                  new EventHandler<SpeechRecognizedEventArgs>(Reco_SpeechRecognized);
+
+                recognizer.RecognizeCompleted +=
+                  new EventHandler<RecognizeCompletedEventArgs>(RecognizeCompletedHandler);
+
+                // Configure input to the speech recognizer.  
+                recognizer.SetInputToDefaultAudioDevice();
+                completed = false;
+                // Start asynchronous, continuous speech recognition.  
+                recognizer.RecognizeAsync(RecognizeMode.Single);
+
+                while (!completed)
+                {
+                    Thread.Sleep(1000);
+                }
+
+            }
+
+
+            return new JsonResult("Success");
+        }
+
+        [HttpGet("GetVoices/{region}")]
+        public async Task<string> GetVoiceList(string region)
+        {
+            HttpClient httpClient = new HttpClient();
+            var fetchUri = "https://eastus.tts.speech.microsoft.com/cognitiveservices/voices/list";
+            httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", SubscriptionKey);
+            var token = await _authentication.FetchTokenAsync("https://eastus.api.cognitive.microsoft.com/sts/v1.0/issueToken", SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            UriBuilder uriBuilder = new UriBuilder(fetchUri);
+
+            var result = await httpClient.GetAsync(uriBuilder.Uri.AbsoluteUri);
+            return await result.Content.ReadAsStringAsync();
+        }
+
+        public void OutputSpeechSynthesisResult(SpeechSynthesisResult speechSynthesisResult, string text)
+        {
+            switch (speechSynthesisResult.Reason)
+            {
+                case ResultReason.SynthesizingAudioCompleted:
+                    Console.WriteLine($"Speech synthesized for text: [{text}]");
+                    break;
+                case ResultReason.Canceled:
+                    var cancellation = SpeechSynthesisCancellationDetails.FromResult(speechSynthesisResult);
+                    Console.WriteLine($"CANCELED: Reason={cancellation.Reason}");
+
+                    if (cancellation.Reason == CancellationReason.Error)
+                    {
+                        Console.WriteLine($"CANCELED: ErrorCode={cancellation.ErrorCode}");
+                        Console.WriteLine($"CANCELED: ErrorDetails=[{cancellation.ErrorDetails}]");
+                        Console.WriteLine($"CANCELED: Did you set the speech resource key and region values?");
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
 
         public static string StringFromWordArray(ReadOnlyCollection<RecognizedWordUnit> words, WordType type)
         {
@@ -192,6 +253,7 @@ namespace EmployeeTextToSpeech.Controllers
             }
             return text;
         }
+
         public static void Reco_SpeechHypothesized(object sender, SpeechHypothesizedEventArgs e)
         {
             recoPhonemes = StringFromWordArray(e.Result.Words, WordType.Pronunciation);
@@ -200,6 +262,44 @@ namespace EmployeeTextToSpeech.Controllers
         public static void Reco_SpeechRecognitionRejected(object sender, SpeechRecognitionRejectedEventArgs e)
         {
             recoPhonemes = StringFromWordArray(e.Result.Words, WordType.Pronunciation);
+        }
+
+        public static void RecognizeCompletedHandler(object sender, RecognizeCompletedEventArgs e)
+        {
+            Console.WriteLine(" In RecognizeCompletedHandler.");
+
+            if (e.Error != null)
+            {
+                Console.WriteLine(
+                  " - Error occurred during recognition: {0}", e.Error);
+                return;
+            }
+            if (e.InitialSilenceTimeout || e.BabbleTimeout)
+            {
+                Console.WriteLine(
+                  " - BabbleTimeout = {0}; InitialSilenceTimeout = {1}",
+                  e.BabbleTimeout, e.InitialSilenceTimeout);
+                return;
+            }
+            if (e.InputStreamEnded)
+            {
+                Console.WriteLine(
+                  " - AudioPosition = {0}; InputStreamEnded = {1}",
+                  e.AudioPosition, e.InputStreamEnded);
+            }
+            if (e.Result != null)
+            {
+                Console.WriteLine(
+                  " - Grammar = {0}; Text = {1}; Confidence = {2}",
+                  e.Result.Grammar.Name, e.Result.Text, e.Result.Confidence);
+                Console.WriteLine(" - AudioPosition = {0}", e.AudioPosition);
+            }
+            else
+            {
+                Console.WriteLine(" - No result.");
+            }
+
+            completed = true;
         }
 
     }

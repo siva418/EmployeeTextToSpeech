@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NamePronunciation.ServiceLayer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,8 @@ namespace EmployeeTextToSpeech
         {
             services.AddControllers();
             services.AddTransient<VoiceList, VoiceList>();
-            services.AddTransient<Authentication, Authentication>();
+            services.AddTransient<Authentication, Authentication>(); 
+            services.AddTransient<DBOperations, DBOperations>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
