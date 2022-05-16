@@ -39,10 +39,16 @@ namespace NamePronunciation.Controllers
 
         public JsonResult GetEmployeeList(string namePart)
         {
-            List<EmployeeData> empList = _dbOperations.GetEmployeeList();
+            if (!string.IsNullOrWhiteSpace(namePart))
+            {
+                List<EmployeeData> empList = _dbOperations.GetEmployeeList();
 
-            var result = empList.Where(e => e.FirstName.StartsWith(namePart) || e.LastName.StartsWith(namePart)).ToList();
-            return Json(result);
+                var result = empList.Where(e => e.FirstName.ToLower().StartsWith(namePart.Trim().ToLower()) || e.LastName.ToLower().StartsWith(namePart.Trim().ToLower())).ToList();
+
+                return Json(result);
+            }
+            else
+                return Json("");   
         }
     }
 }
