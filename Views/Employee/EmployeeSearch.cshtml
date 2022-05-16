@@ -41,8 +41,10 @@
                             var dataList = document.getElementById('json-datalist');
                             $(dataList).empty();
                             $.each(data, function (key, value) {
-                                $(dataList).append($('<option>').text(value.firstName.trim() + ' ' + value.lastName.trim()).attr("value", value.adentid));
+                                $(dataList).append($('<option>').text(value.FirstName.trim() + ' ' + value.LastName.trim()).attr("value", value.ADENTID.trim()));
                             });
+
+                            $('#json-datalist').click();
                         }
                     },
                     error: function () {
@@ -50,15 +52,22 @@
                     }
                 });
             });
+
+            $('#json-datalist').change(function () {
+                var adEntId = $(this).val();
+                var url = '@Url.Action("EmployeeSearch", "Employee", new { employeeAdEntId = "adEntId"})';
+                window.location.href = url.replace('adEntId', adEntId);
+            });
         });
 </script>
 <div id="divEmployeeSearch" class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
     <br />
+    <div id="employeeNameAutoComplete">
+        <label><b>Search For Other Employee's Name Pronunciation : </b></label>
+        <input id="empAutoComplete" name="empNameAutoComplete" type="text"></input>
+        <select id="json-datalist" class="form-control" style="width:50% !important;"></select>
+    </div>
     <div style="height:10px; text-align: right;">
-        <div id="employeeNameAutoComplete">
-            <input class="form-control" id="empAutoComplete" name="empNameAutoComplete" type="text"/>
-            <datalist id="json-datalist"></datalist>
-        </div>
         <label><b>Logged Employee : </b></label>
         <label id="loggedemp" style="width:120px; text-align:left;">@Model.FirstName</label>
         <br />
