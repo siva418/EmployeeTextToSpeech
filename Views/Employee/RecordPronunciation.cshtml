@@ -11,6 +11,31 @@
     }
 </style>
 <html>
+<head>
+    <script type="text/javascript">
+        $(document.ready(function () {
+            $("btnplay").click(function () {
+                var speechModel = CreateSpeechModel();
+                $.ajax({
+                    url: '/speech/TextToSpeech',
+                    contentType: 'application/json',
+                    type: 'Post',
+                    data: JSON.stingify(speechModel),
+                    success: function (data) {
+
+                    }
+                })
+            })
+        }));
+
+        function CreateSpeechModel() {
+            var speechModel = this;
+            speechModel.EmployeeAdEntId = "U819140";// $("ADEntId").val();
+            speechModel.Name = "Riyaz Pasha";//$("").val();
+            speechModel.Region = "India";// $("").val();
+        }
+    </script>
+</head>
 <body>
     <table class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding-left:10px;" id="tblRecordPronunciation">
         <tr>
@@ -20,7 +45,7 @@
                     <tbody>
                         <tr>
                             <td style="text-align: left; padding: 10px;"><label><b>Opt out name Pronunciation : &nbsp;&nbsp;</b></label></td>
-                            
+
                             <td>
                                 <div>
                                     <input type="radio" id="idoptoutnameradio1" name="optoutnameradio">

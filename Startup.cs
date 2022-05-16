@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NamePronunciationTool.ServiceLayer;
+using Newtonsoft.Json.Serialization;
 
 namespace NamePronunciationTool
 {
@@ -19,7 +20,7 @@ namespace NamePronunciationTool
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
             services.AddControllersWithViews();
             services.AddTransient<VoiceList, VoiceList>();
             services.AddTransient<Authentication, Authentication>();

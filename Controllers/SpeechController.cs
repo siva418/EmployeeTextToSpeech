@@ -2,6 +2,7 @@
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NamePronunciation.Models;
 using NamePronunciationTool.ServiceLayer;
 using System;
 using System.Collections.ObjectModel;
@@ -54,23 +55,23 @@ namespace NamePronunciationTool.Controllers
             return new JsonResult("HI! Welcome to Text to Speech API");
         }
 
-        [HttpGet("TextToSpeech/{employeeAdEntId}/{name}/{region}")]
-        public async Task<JsonResult> TextToSpeech(string employeeAdEntId, string name, string region)
+        [HttpPost("TextToSpeech")]
+        public async Task<JsonResult> TextToSpeech([FromBody]SpeechModel speechModel)
         {
             try
             {
                 var speechConfig = SpeechConfig.FromSubscription(SubscriptionKey, yourServiceRegion);
-
-                speechConfig.SpeechSynthesisVoiceName = _voiceList.GetVoiceList(true).FirstOrDefault(x => x.Key == region).Value;
+                speechModel.Region = string.IsNullOrWhiteSpace(speechModel.Region) ? "US" : speechModel.Region;
+                speechConfig.SpeechSynthesisVoiceName = _voiceList.GetVoiceList(true).FirstOrDefault(x => x.Key == speechModel.Region).Value;
 
 
                 using (var speechSynthesizer = new Microsoft.CognitiveServices.Speech.SpeechSynthesizer(speechConfig))
                 {
-                    var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(name ?? "Hi! Welcome to name pronunciation tool");
-                    OutputSpeechSynthesisResult(speechSynthesisResult, name);
+                    var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(speechModel.Name ?? "Hi! Welcome to name pronunciation tool");
+                    OutputSpeechSynthesisResult(speechSynthesisResult, speechModel.Name);
                 }
-                var phoneticName = GetPhoneticName(name);
-                var isSaved = _dBOperations.SavePhoneticName(employeeAdEntId, phoneticName);
+                var phoneticName = GetPhoneticName(speechModel.Name);
+                var isSaved = _dBOperations.SavePhoneticName(speechModel.EmployeeAdEntId, phoneticName);
                 if (!isSaved)
                 {
                     return new JsonResult("Failure");
