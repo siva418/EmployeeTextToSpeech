@@ -24,6 +24,7 @@ namespace EmployeeTextToSpeech.Controllers
         public static DBOperations _dBOperations { get; set; }
         public IConfiguration _configuration;
         public static string recoPhonemes;
+        public static string _adEntIdToSaveSpeech;
 
         public string SubscriptionKey
         {
@@ -51,7 +52,7 @@ namespace EmployeeTextToSpeech.Controllers
         }
 
         [HttpGet("TextToSpeech/{employeeid}/{name}/{region}")]
-        public async Task<JsonResult> TextToSpeech(string employeeId, string name, string region)
+        public async Task<JsonResult> TextToSpeech(string employeeAdEntId, string name, string region)
         {
             try
             {
@@ -67,7 +68,7 @@ namespace EmployeeTextToSpeech.Controllers
                     OutputSpeechSynthesisResult(speechSynthesisResult, name);
                 }
                 var phoneticName = GetPhoneticName(name);
-                var isSaved = _dBOperations.SavePhoneticName(employeeId, phoneticName);
+                var isSaved = _dBOperations.SavePhoneticName(employeeAdEntId, phoneticName);
                 if (!isSaved)
                 {
                     return new JsonResult("Failure");
@@ -128,13 +129,14 @@ namespace EmployeeTextToSpeech.Controllers
                     dataToBeSaved = memoryStream.ToArray();
                 }
             }
-            _dBOperations.SaveSpeech("1974899", dataToBeSaved);
+            _dBOperations.SaveSpeech(_adEntIdToSaveSpeech, dataToBeSaved);
 
         }
 
-        [HttpPost("SaveSpeech")]
-        public JsonResult SaveSpeech()
+        [HttpPost("SaveSpeech/{adentid}")]
+        public JsonResult SaveSpeech(string adentid)
         {
+            _adEntIdToSaveSpeech = adentid;
             // Create an in-process speech recognizer for the en-US locale.  
             using (
             SpeechRecognitionEngine recognizer =
