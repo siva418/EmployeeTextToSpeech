@@ -45,7 +45,7 @@ namespace NamePronunciationTool
             {
                 endpoints.MapControllerRoute(
                     name:"default",
-                    pattern: "{controller=Home}/{action=Index}"
+                    pattern: "{controller=Employee}/{action=Index}"
                     );
             });
         }
