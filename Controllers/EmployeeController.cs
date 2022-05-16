@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NamePronunciationTool.Models;
 using NamePronunciationTool.ServiceLayer;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace NamePronunciation.Controllers
 {

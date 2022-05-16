@@ -1,17 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using NamePronunciation.ServiceLayer;
 using NamePronunciationTool.ServiceLayer;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace NamePronunciationTool
 {
@@ -30,8 +22,7 @@ namespace NamePronunciationTool
             services.AddControllers();
             services.AddControllersWithViews();
             services.AddTransient<VoiceList, VoiceList>();
-            services.AddTransient<Authentication, Authentication>(); 
-            services.AddTransient<DBOperations, DBOperations>();
+            services.AddTransient<Authentication, Authentication>();
             services.AddTransient<IDBOperations, DBOperationService>();
         }
 
@@ -44,6 +35,7 @@ namespace NamePronunciationTool
             }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
 
             app.UseRouting();
 

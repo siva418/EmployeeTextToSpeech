@@ -2,7 +2,6 @@
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using NamePronunciation.ServiceLayer;
 using NamePronunciationTool.ServiceLayer;
 using System;
 using System.Collections.ObjectModel;
@@ -68,7 +67,6 @@ namespace NamePronunciationTool.Controllers
                 using (var speechSynthesizer = new Microsoft.CognitiveServices.Speech.SpeechSynthesizer(speechConfig))
                 {
                     var speechSynthesisResult = await speechSynthesizer.SpeakTextAsync(name ?? "Hi! Welcome to name pronunciation tool");
-                    var a = speechSynthesisResult.Properties;
                     OutputSpeechSynthesisResult(speechSynthesisResult, name);
                 }
                 var phoneticName = GetPhoneticName(name);
@@ -83,7 +81,7 @@ namespace NamePronunciationTool.Controllers
             catch (Exception ex)
             {
                 _ilogger.LogError(ex.Message);
-                return new JsonResult("An error occured");
+                return new JsonResult(ex.Message);
             }
         }
 

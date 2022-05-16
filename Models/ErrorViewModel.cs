@@ -1,5 +1,3 @@
-using System;
-
 namespace NamePronunciationTool.Models
 {
     public class ErrorViewModel
