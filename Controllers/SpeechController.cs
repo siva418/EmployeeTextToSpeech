@@ -67,7 +67,7 @@ namespace EmployeeTextToSpeech.Controllers
                     OutputSpeechSynthesisResult(speechSynthesisResult, name);
                 }
                 var phoneticName = GetPhoneticName(name);
-                var isSaved = _dBOperations.SavePhoneticName(employeeId, name);
+                var isSaved = _dBOperations.SavePhoneticName(employeeId, phoneticName);
                 if (!isSaved)
                 {
                     return new JsonResult("Failure");
